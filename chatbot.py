@@ -12,6 +12,15 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_ollama import ChatOllama, OllamaEmbeddings
 
+import os, sys
+
+# Patch sqlite3 with pysqlite3 for Streamlit
+try:
+    __import__("pysqlite3")
+    sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
+except ImportError:
+    pass
+
 
 # ================================
 # PDF Ingestor (Directory Support)
