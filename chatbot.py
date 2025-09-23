@@ -5,17 +5,15 @@ import glob
 
 from langchain.chains import ConversationalRetrievalChain
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_chroma import Chroma
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_community.document_loaders import DirectoryLoader, PyMuPDFLoader
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_ollama import ChatOllama, OllamaEmbeddings
-
-# Patch sqlite3 with pysqlite3 for Streamlit
-__import__('pysqlite3')
+import pysqlite3
 import sys
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+sys.modules["sqlite3"] = pysqlite3
+from langchain_chroma import Chroma
 
 
 # ================================
