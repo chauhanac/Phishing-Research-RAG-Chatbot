@@ -3,6 +3,7 @@ langchain
 langchain-community
 langchain-core
 langchain-ollama
-chromadb
+langchain_chroma
+langchain_huggingface
 sentence-transformers
 PyMuPDF
