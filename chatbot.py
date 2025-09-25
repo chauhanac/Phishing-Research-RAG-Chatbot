@@ -2,18 +2,17 @@
 # Imports
 # ================================
 import glob
+import os
 
+import streamlit as st
 from langchain.chains import ConversationalRetrievalChain
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_chroma import Chroma
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_community.document_loaders import DirectoryLoader, PyMuPDFLoader
 from langchain_core.runnables.history import RunnableWithMessageHistory
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings, HuggingFaceEndpoint
 from langchain_ollama import ChatOllama, OllamaEmbeddings
-import pysqlite3
-import sys
-sys.modules["sqlite3"] = pysqlite3
-from langchain_chroma import Chroma
 
 
 # ================================
@@ -22,7 +21,7 @@ from langchain_chroma import Chroma
 class DataIngestor:
     """Loads raw files from a directory and splits into chunks"""
 
-    def __init__(self, chunk_size: int = 1000, chunk_overlap: int = 100):
+    def __init__(self, chunk_size: int = 1000, chunk_overlap: int = 200):
         
         self.text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size,
@@ -118,9 +117,6 @@ class ConversationalRAGChatbot:
         # Retriever from vector store
         self.retriever = self.vector_store.get_retriever(k=5)
 
-        # Use ChatMessageHistory for memory
-        self.history = ChatMessageHistory()
-
         self.histories = {}
 
         # Conversational QA Chain
@@ -147,6 +143,35 @@ class ConversationalRAGChatbot:
             config={"configurable": {"session_id": session_id}},
         )
         return response["answer"]
+
+    def _initialize_llm(self, model_name: str):
+            """Choose Ollama locally, else fallback to HuggingFace on cloud"""
+
+            # First try Ollama (only works if running locally with Ollama installed)
+            try:
+                return ChatOllama(model=model_name, temperature=0)
+            except Exception:
+                print("Ollama not available, using HuggingFaceEndpoint instead.")
+
+                # Try to get HuggingFace API token from Streamlit secrets or env
+                hf_token = None
+                try:
+                    hf_token = st.secrets["HUGGINGFACE_API_TOKEN"]
+                except Exception:
+                    hf_token = os.getenv("HUGGINGFACE_API_TOKEN")
+
+                if not hf_token:
+                    raise RuntimeError(
+                        "Missing Hugging Face API token. "
+                        "Set HUGGINGFACE_API_TOKEN in Streamlit secrets or as env var."
+                    )
+
+                return HuggingFaceEndpoint(
+                    repo_id="tiiuae/falcon-7b-instruct",  # free instruct model
+                    huggingfacehub_api_token=hf_token,
+                    temperature=0.3,
+                    max_new_tokens=512,
+                )
 
     def get_history(self, session_id: str = "default"):
         """Return formatted conversation history for display in UI."""
