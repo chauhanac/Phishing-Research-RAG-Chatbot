@@ -112,7 +112,7 @@ class ConversationalRAGChatbot:
 
     def __init__(self, vector_store: VectorStore, model_name: str = "llama3"):
         self.vector_store = vector_store
-        self.llm = ChatOllama(model=model_name, temperature=0)
+        self.llm = self._initialize_llm(model_name)
 
         # Retriever from vector store
         self.retriever = self.vector_store.get_retriever(k=5)
@@ -167,7 +167,7 @@ class ConversationalRAGChatbot:
                     )
 
                 return HuggingFaceEndpoint(
-                    repo_id="tiiuae/falcon-7b-instruct",  # free instruct model
+                    repo_id="tiiuae/falcon-7b-instruct",
                     huggingfacehub_api_token=hf_token,
                     temperature=0.3,
                     max_new_tokens=512,
