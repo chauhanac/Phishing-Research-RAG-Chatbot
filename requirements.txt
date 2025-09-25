@@ -2,9 +2,9 @@ streamlit
 langchain
 langchain-community
 langchain-core
+langchain-chroma
+langchain-huggingface
 langchain-ollama
-langchain_chroma
-langchain_huggingface
+chromadb
 sentence-transformers
 PyMuPDF
-pysqlite3-binary
